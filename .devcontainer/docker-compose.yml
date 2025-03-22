@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: .devcontainer/backend.Dockerfile
+    command: python manage.py runserver 0.0.0.0:8001
+    volumes:
+      - ..:/workspace
+    ports:
+      - "8001:8001"
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: .devcontainer/frontend.Dockerfile
+    command: yarn start
+    volumes:
+      - ..:/workspace
+    ports:
+      - "3000:3000"
+    environment:
+      - WATCHPACK_POLLING=true
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
