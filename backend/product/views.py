@@ -49,7 +49,7 @@ class ProductView(APIView):
         serializer = ProductSerializer(product, data=request.data, partial=True)
         if serializer.is_valid():
             product = ProductService.update(product_id, serializer.validated_data)
-            return Response(product)
+            return Response(ProductSerializer(self.get_product(product_id)).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, product_id):

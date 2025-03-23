@@ -1,5 +1,6 @@
 from .models import Product
 from mongoengine.errors import DoesNotExist
+from datetime import datetime
 
 class ProductService:
     @staticmethod
@@ -21,6 +22,7 @@ class ProductService:
     
     @staticmethod
     def update(product_id, data):
+        data["updated_at"] = datetime.utcnow()
         product = ProductService.get_product(product_id).modify(**data)
         return product
     
