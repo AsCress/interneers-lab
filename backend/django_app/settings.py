@@ -74,14 +74,23 @@ WSGI_APPLICATION = "django_app.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+from dotenv import load_dotenv
+import os
+from mongoengine import connect
+import urllib.parse
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+load_dotenv()
+MONGO_USER = os.getenv("MONGO_USER")
+MONGO_PASS = os.getenv("MONGO_PASS")
+encoded_user = urllib.parse.quote_plus(MONGO_USER)
+encoded_pass = urllib.parse.quote_plus(MONGO_PASS)
 
+connect(
+    "inventory",
+    host=f"mongodb://{encoded_user}:{encoded_pass}@localhost:27018/inventory?authSource=admin"
+)
+
+DATABASES = {}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
