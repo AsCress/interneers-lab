@@ -77,17 +77,16 @@ WSGI_APPLICATION = "django_app.wsgi.application"
 from dotenv import load_dotenv
 import os
 from mongoengine import connect
-import urllib.parse
 
 load_dotenv()
 MONGO_USER = os.getenv("MONGO_USER")
 MONGO_PASS = os.getenv("MONGO_PASS")
-encoded_user = urllib.parse.quote_plus(MONGO_USER)
-encoded_pass = urllib.parse.quote_plus(MONGO_PASS)
+MONGO_PORT = os.getenv("MONGO_PORT", "27018")
+MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
 
 connect(
     "inventory",
-    host=f"mongodb://{encoded_user}:{encoded_pass}@localhost:27018/inventory?authSource=admin"
+    host=f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/inventory?authSource=admin",
 )
 
 DATABASES = {}

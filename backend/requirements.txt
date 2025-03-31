@@ -1,2 +1,6 @@
 Django==5.1.6
 pymongo==4.11.1
+python-dotenv==1.0.0
+mongoengine==0.29.1
+djangorestframework==3.16.0
+django-rest-framework-mongoengine==3.4.1
