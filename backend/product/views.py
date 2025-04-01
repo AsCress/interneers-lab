@@ -30,16 +30,22 @@ class ProductView(APIView):
             raise Http404("Product does not exist")
         return product
 
-    def get(self, request, product_id=None):
-        if product_id:
-            product = self.get_product(product_id)
-            serializer = ProductSerializer(product)
-            return Response(serializer.data)
+    def get_by_id(self, product_id):
+        product = self.get_product(product_id)
+        serializer = ProductSerializer(product)
+        return Response(serializer.data)
+
+    def list(self, request):
         products = ProductService.get()
         serializer = ProductSerializer(products, many=True)
         paginator = self.pagination_class()
         results = paginator.paginate_queryset(serializer.data, request, view=self)
         return paginator.get_paginated_response(results)
+
+    def get(self, request, product_id=None):
+        if product_id:
+            return self.get_by_id(product_id)
+        return self.list(request)
 
     def post(self, request):
         serializer = ProductSerializer(data=request.data)
@@ -76,16 +82,22 @@ class ProductCategoryView(APIView):
             raise Http404("Category does not exist")
         return category
 
-    def get(self, request, category_id=None):
-        if category_id:
-            category = self.get_category(category_id)
-            serializer = ProductCategorySerializer(category)
-            return Response(serializer.data)
+    def get_by_id(self, category_id):
+        category = self.get_category(category_id)
+        serializer = ProductCategorySerializer(category)
+        return Response(serializer.data)
+
+    def list(self, request):
         categories = ProductCategoryService.get()
         serializer = ProductCategorySerializer(categories, many=True)
         paginator = self.pagination_class()
         results = paginator.paginate_queryset(serializer.data, request, view=self)
         return paginator.get_paginated_response(results)
+
+    def get(self, request, category_id=None):
+        if category_id:
+            return self.get_by_id(category_id)
+        return self.list(request)
 
     def post(self, request):
         serializer = ProductCategorySerializer(data=request.data)
