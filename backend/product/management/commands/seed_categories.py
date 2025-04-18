@@ -19,18 +19,16 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         for category_data in DEFAULT_CATEGORIES:
-            serializer = ProductCategorySerializer(data=category_data)
-            if serializer.is_valid():
-                category = serializer.validated_data
-                ProductCategoryService.create(category)
-                self.stdout.write(
-                    self.style.SUCCESS(f"Created category: {category_data["title"]}")
-                )
-            else:
+            category, errors = ProductCategoryService.create(category_data)
+            if errors:
                 self.stdout.write(
                     self.style.WARNING(
                         f"Error creating category: {category_data["title"]}"
                     )
+                )
+            else:
+                self.stdout.write(
+                    self.style.SUCCESS(f"Created category: {category_data["title"]}")
                 )
 
         self.stdout.write(self.style.SUCCESS("Category seeding complete."))

@@ -1,14 +1,14 @@
 from django.core.management.base import BaseCommand
 from mongoengine.errors import ValidationError
-from product.services import ProductCategoryService
 from product.services import ProductService
+from product import ProductCategoryRepository
 
 
 class Command(BaseCommand):
     help = "Migrate products with no category to 'Uncategorized'"
 
     def handle(self, *args, **kwargs):
-        uncategorized_category = ProductCategoryService.get_category_by_title(
+        uncategorized_category = ProductCategoryRepository.get_by_title(
             title="Uncategorized"
         )
 

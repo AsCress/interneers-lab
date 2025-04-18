@@ -1,63 +1,104 @@
-from .models import Product
-from .models import ProductCategory
-from mongoengine.errors import DoesNotExist
-from datetime import datetime
+from .exceptions import CategoryNotFoundError, ProductNotFoundError
+from .models import Product, ProductCategory
+from .serializers import ProductSerializer
+from .serializers import ProductCategorySerializer
+from .repository import ProductRepository
+from .repository import ProductCategoryRepository
 
 
 class ProductService:
-    @staticmethod
-    def get_product(product_id):
-        try:
-            return Product.objects.get(id=product_id)
-        except Product.DoesNotExist:
-            raise DoesNotExist("Product does not exist")
 
     @staticmethod
     def get():
-        return Product.objects.all()
+        products = ProductRepository.get()
+        serializer = ProductSerializer(products, many=True)
+        return serializer.data
+
+    @staticmethod
+    def get_by_id(product_id):
+        try:
+            product = ProductRepository.get_product(product_id)
+        except Product.DoesNotExist:
+            raise ProductNotFoundError()
+        serializer = ProductSerializer(product)
+        return serializer.data
+
+    @staticmethod
+    def get_by_category(category_id):
+        products = ProductRepository.get_by_category(category_id)
+        serializer = ProductSerializer(products, many=True)
+        return serializer.data
 
     @staticmethod
     def create(data):
-        product = Product(**data)
-        product.save()
-        return product
+        serializer = ProductSerializer(data=data)
+        if serializer.is_valid():
+            product = serializer.validated_data
+            ProductRepository.create(product)
+        return [serializer.data, serializer.errors]
 
     @staticmethod
     def update(product_id, data):
-        data["updated_at"] = datetime.utcnow()
-        product = ProductService.get_product(product_id).modify(**data)
-        return product
+        try:
+            product = ProductRepository.get_product(product_id)
+        except Product.DoesNotExist:
+            raise ProductNotFoundError()
+        serializer = ProductSerializer(product, data, partial=True)
+        if serializer.is_valid():
+            product = serializer.validated_data
+            ProductRepository.update(product_id, product)
+        return [serializer.data, serializer.errors]
 
     @staticmethod
     def delete(product_id):
-        product = ProductService.get_product(product_id).delete()
-        return product
+        try:
+            product = ProductRepository.get_product(product_id)
+        except Product.DoesNotExist:
+            raise ProductNotFoundError()
+        ProductRepository.delete(product_id)
 
 
 class ProductCategoryService:
-    @staticmethod
-    def get_category(category_id):
-        try:
-            return ProductCategory.objects.get(id=category_id)
-        except ProductCategory.DoesNotExist:
-            raise DoesNotExist("Category does not exist")
 
     @staticmethod
     def get():
-        return ProductCategory.objects.all()
+        categories = ProductCategoryRepository.get()
+        serializer = ProductCategorySerializer(categories, many=True)
+        return serializer.data
+
+    @staticmethod
+    def get_by_id(category_id):
+        try:
+            category = ProductCategoryRepository.get_category(category_id)
+        except ProductCategory.DoesNotExist:
+            raise CategoryNotFoundError()
+        serializer = ProductCategorySerializer(category)
+        return serializer.data
 
     @staticmethod
     def create(data):
-        category = ProductCategory(**data)
-        category.save()
-        return category
+        serializer = ProductCategorySerializer(data=data)
+        if serializer.is_valid():
+            category = serializer.validated_data
+            ProductCategoryRepository.create(category)
+        return [serializer.data, serializer.errors]
 
     @staticmethod
     def update(category_id, data):
-        category = ProductCategoryService.get_category(category_id).modify(**data)
-        return category
+        try:
+            category = ProductCategoryRepository.get_category(category_id)
+        except ProductCategory.DoesNotExist:
+            raise CategoryNotFoundError()
+        serializer = ProductCategorySerializer(category, data=data, partial=True)
+        if serializer.is_valid():
+            category = serializer.validated_data
+            ProductCategoryRepository.update(category_id, category)
+        return [serializer.data, serializer.errors]
 
     @staticmethod
     def delete(category_id):
-        category = ProductCategoryService.get_category(category_id).delete()
-        return category
+        try:
+            category = ProductCategoryRepository.get_category(category_id)
+        except ProductCategory.DoesNotExist:
+            raise CategoryNotFoundError()
+        ProductCategoryRepository.delete(category_id)
