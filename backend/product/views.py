@@ -101,7 +101,9 @@ class ProductCategoryView(APIView):
             return self.get_by_id(category_id)
         return self.list(request)
 
-    def post(self, request):
+    def post(self, request, category_id=None):
+        if request.path.endswith("/products/"):
+            return self.add_to_category(request, category_id)
         category, errors = ProductCategoryService.create(request.data)
         if errors:
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
@@ -117,6 +119,8 @@ class ProductCategoryView(APIView):
         return Response(category, status=status.HTTP_201_CREATED)
 
     def delete(self, request, category_id):
+        if request.path.endswith("/products/"):
+            return self.remove_from_category(request, category_id)
         try:
             ProductCategoryService.delete(category_id)
         except CategoryNotFoundError as e:
@@ -124,4 +128,36 @@ class ProductCategoryView(APIView):
         return Response(
             {"message": "Category deleted successfully"},
             status=status.HTTP_204_NO_CONTENT,
+        )
+
+    def add_to_category(self, request, category_id):
+        if not isinstance(request.data, list):
+            return Response(
+                {"error": "Request data must be a list of product IDs"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            ProductCategoryService.add_to_category(category_id, request.data)
+        except (CategoryNotFoundError, ProductNotFoundError) as e:
+            return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"message": "Products added to category successfully"},
+            status=status.HTTP_201_CREATED,
+        )
+
+    def remove_from_category(self, request, category_id):
+        if not isinstance(request.data, list):
+            return Response(
+                {"error": "Request data must be a list of product IDs"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            ProductCategoryService.remove_from_category(category_id, request.data)
+        except (CategoryNotFoundError, ProductNotFoundError) as e:
+            return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"message": "Products removed from category successfully"},
+            status=status.HTTP_201_CREATED,
         )
