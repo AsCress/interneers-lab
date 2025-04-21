@@ -102,3 +102,41 @@ class ProductCategoryService:
         except ProductCategory.DoesNotExist:
             raise CategoryNotFoundError()
         ProductCategoryRepository.delete(category_id)
+
+    @staticmethod
+    def add_to_category(category_id, product_ids):
+        try:
+            category = ProductCategoryRepository.get_category(category_id)
+        except ProductCategory.DoesNotExist:
+            raise CategoryNotFoundError()
+
+        for product_id in product_ids:
+            try:
+                product = ProductRepository.get_product(product_id)
+            except Product.DoesNotExist:
+                raise ProductNotFoundError(f"Product not found: {product_id}")
+            ProductRepository.update(product.id, {"category": category})
+
+    @staticmethod
+    def remove_from_category(category_id, product_ids):
+        uncategorized_category = ProductCategoryRepository.get_by_title(
+            title="Uncategorized"
+        )
+
+        try:
+            category = ProductCategoryRepository.get_category(category_id)
+        except ProductCategory.DoesNotExist:
+            raise CategoryNotFoundError()
+
+        products_to_update = []
+        for product_id in product_ids:
+            try:
+                product = ProductRepository.get_product(product_id)
+            except Product.DoesNotExist:
+                raise ProductNotFoundError(f"Product not found: {product_id}")
+            if product.category != category:
+                raise ProductNotFoundError(f"Product not in category: {product_id}")
+            products_to_update.append(product)
+
+        for product in products_to_update:
+            ProductRepository.update(product.id, {"category": uncategorized_category})
