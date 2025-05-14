@@ -17,7 +17,7 @@ class ProductPagination(PageNumberPagination):
     max_page_size = 100
 
 
-class ProductView(APIView):
+class ProductCreateView(APIView):
     pagination_class = ProductPagination
     product_service = ProductService()
     category_service = ProductCategoryService()
@@ -27,10 +27,6 @@ class ProductView(APIView):
         results = paginator.paginate_queryset(data, self.request, view=self)
         return paginator.get_paginated_response(results)
 
-    def get_by_id(self, product_id):
-        product = self.product_service.get_by_id(product_id)
-        return Response(product, status=status.HTTP_200_OK)
-
     def list(self, request):
         products = self.product_service.get()
         return self.get_paginated_response(products)
@@ -39,9 +35,7 @@ class ProductView(APIView):
         products = self.product_service.get_by_category(category_id)
         return self.get_paginated_response(products)
 
-    def get(self, request, product_id=None):
-        if product_id:
-            return self.get_by_id(product_id)
+    def get(self, request):
         category_id = request.GET.get("category_id")
         if category_id:
             self.category_service.get_by_id(category_id)
@@ -51,6 +45,19 @@ class ProductView(APIView):
     def post(self, request):
         product = self.product_service.create(request.data)
         return Response(product, status=status.HTTP_201_CREATED)
+
+
+class ProductDetailView(APIView):
+    product_service = ProductService()
+    category_service = ProductCategoryService()
+
+    def get_by_id(self, product_id):
+        product = self.product_service.get_by_id(product_id)
+        return Response(product, status=status.HTTP_200_OK)
+
+    def get(self, request, product_id=None):
+        if product_id:
+            return self.get_by_id(product_id)
 
     def put(self, request, product_id):
         product = self.product_service.update(product_id, request.data)
@@ -64,7 +71,7 @@ class ProductView(APIView):
         )
 
 
-class ProductCategoryView(APIView):
+class ProductCategoryCreateView(APIView):
     pagination_class = ProductPagination
     product_service = ProductService()
     category_service = ProductCategoryService()
@@ -74,24 +81,34 @@ class ProductCategoryView(APIView):
         results = paginator.paginate_queryset(data, self.request, view=self)
         return paginator.get_paginated_response(results)
 
-    def get_by_id(self, category_id):
-        category = self.category_service.get_by_id(category_id)
-        return Response(category, status=status.HTTP_200_OK)
-
     def list(self, request):
         categories = self.category_service.get()
         return self.get_paginated_response(categories)
 
+    def get(self, request):
+        return self.list(request)
+
+    def post(self, request):
+        category = self.category_service.create(request.data)
+        return Response(category, status=status.HTTP_201_CREATED)
+
+
+class ProductCategoryDetailView(APIView):
+    pagination_class = ProductPagination
+    product_service = ProductService()
+    category_service = ProductCategoryService()
+
+    def get_by_id(self, category_id):
+        category = self.category_service.get_by_id(category_id)
+        return Response(category, status=status.HTTP_200_OK)
+
     def get(self, request, category_id=None):
         if category_id:
             return self.get_by_id(category_id)
-        return self.list(request)
 
     def post(self, request, category_id=None):
         if request.path.endswith("/products/"):
             return self.add_to_category(request, category_id)
-        category = self.category_service.create(request.data)
-        return Response(category, status=status.HTTP_201_CREATED)
 
     def put(self, request, category_id):
         category = self.category_service.update(category_id, request.data)
