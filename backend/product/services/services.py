@@ -129,3 +129,44 @@ class ProductCategoryService:
         except CategoryValidationError:
             raise CategoryValidationException(category_id)
         ProductCategoryRepository.delete(category_id)
+
+    @staticmethod
+    def add_to_category(category_id, product_ids):
+        try:
+            category = ProductCategoryRepository.get_category(category_id)
+        except CategoryDoesNotExist:
+            raise CategoryNotFoundException(category_id)
+        except CategoryValidationError:
+            raise CategoryValidationException(category_id)
+
+        for product_id in product_ids:
+            try:
+                product = ProductRepository.get_product(product_id)
+            except ProductDoesNotExist:
+                raise ProductNotFoundException(product_id)
+            except ProductValidationError:
+                raise ProductValidationException(product_id)
+
+            ProductRepository.update(product.id, {"category": category})
+
+    @staticmethod
+    def remove_from_category(category_id, product_ids):
+        uncategorized_category = ProductCategoryRepository.get_by_title(
+            title="Uncategorized"
+        )
+        try:
+            category = ProductCategoryRepository.get_category(category_id)
+        except CategoryDoesNotExist:
+            raise CategoryNotFoundException(category_id)
+        except CategoryValidationError:
+            raise CategoryValidationException(category_id)
+
+        for product_id in product_ids:
+            try:
+                product = ProductRepository.get_product(product_id)
+            except ProductDoesNotExist:
+                raise ProductNotFoundException(product_id)
+            except ProductValidationError:
+                raise ProductValidationException(product_id)
+
+            ProductRepository.update(product.id, {"category": uncategorized_category})
