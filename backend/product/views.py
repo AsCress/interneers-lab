@@ -83,7 +83,9 @@ class ProductCategoryView(APIView):
             return self.get_by_id(category_id)
         return self.list(request)
 
-    def post(self, request):
+    def post(self, request, category_id=None):
+        if request.path.endswith("/products/"):
+            return self.add_to_category(request, category_id)
         category = ProductCategoryService.create(request.data)
         return Response(category, status=status.HTTP_201_CREATED)
 
@@ -92,8 +94,46 @@ class ProductCategoryView(APIView):
         return Response(category, status=status.HTTP_201_CREATED)
 
     def delete(self, request, category_id):
+        if request.path.endswith("/products/"):
+            return self.remove_from_category(request, category_id)
         ProductCategoryService.delete(category_id)
         return Response(
             ResponseSerializer(MessageResponse("Category deleted successfully")).data,
             status=status.HTTP_204_NO_CONTENT,
+        )
+
+    def add_to_category(self, request, category_id):
+        if not isinstance(request.data, list):
+            return Response(
+                ResponseSerializer(
+                    MessageResponse("Request data must be a list of product IDs")
+                ).data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        ProductCategoryService.add_to_category(category_id, request.data)
+
+        return Response(
+            ResponseSerializer(
+                MessageResponse("Products added to category successfully")
+            ).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    def remove_from_category(self, request, category_id):
+        if not isinstance(request.data, list):
+            return Response(
+                ResponseSerializer(
+                    MessageResponse("Request data must be a list of product IDs")
+                ).data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        ProductCategoryService.remove_from_category(category_id, request.data)
+
+        return Response(
+            ResponseSerializer(
+                MessageResponse("Products removed from category successfully")
+            ).data,
+            status=status.HTTP_201_CREATED,
         )
