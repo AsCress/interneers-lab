@@ -16,11 +16,12 @@ logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     help = "Seeds the database with default categories"
+    category_service = ProductCategoryService()
 
     def handle(self, *args, **kwargs):
         for category_data in DEFAULT_CATEGORIES:
             try:
-                category = ProductCategoryService.create(category_data)
+                category = self.category_service.create(category_data)
             except CategoryValidationException as e:
                 logger.warning(f"Error creating category: {category_data['title']}")
             logger.info(f"Created category: {category_data['title']}")

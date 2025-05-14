@@ -83,8 +83,8 @@ import os
 from mongoengine import connect
 
 load_dotenv()
-MONGO_USER = os.getenv("MONGO_USER")
-MONGO_PASS = os.getenv("MONGO_PASS")
+MONGO_USER = os.getenv("MONGO_USER", "root")
+MONGO_PASS = os.getenv("MONGO_PASS", "example")
 MONGO_PORT = os.getenv("MONGO_PORT", "27018")
 MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
 
@@ -93,8 +93,12 @@ connect(
     host=f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/inventory?authSource=admin",
 )
 
-DATABASES = {}
-
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
