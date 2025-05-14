@@ -1,14 +1,17 @@
+import logging
 from django.core.management.base import BaseCommand
 from mongoengine.errors import ValidationError
-from product.services import ProductCategoryService
-from product.services import ProductService
+from product.services.services import ProductService
+from product.repository.repository import ProductCategoryRepository
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
     help = "Migrate products with no category to 'Uncategorized'"
 
     def handle(self, *args, **kwargs):
-        uncategorized_category = ProductCategoryService.get_category_by_title(
+        uncategorized_category = ProductCategoryRepository.get_by_title(
             title="Uncategorized"
         )
 
@@ -18,9 +21,8 @@ class Command(BaseCommand):
             product.category = uncategorized_category
             try:
                 product.save()
+                logger.info(f"Updated product {product.id} to 'Uncategorized'")
             except ValidationError:
-                self.stderr.write(
-                    self.style.ERROR(f"Failed to update product {product.id}")
-                )
+                logger.error(f"Failed to update product {product.id}")
 
-        self.stdout.write(self.style.SUCCESS(f"Migration complete."))
+        logger.info("Migration complete.")
