@@ -69,6 +69,10 @@ TEMPLATES = [
     },
 ]
 
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "product.services.exceptions.custom_exception_handler"
+}
+
 WSGI_APPLICATION = "django_app.wsgi.application"
 
 
