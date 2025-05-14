@@ -15,16 +15,17 @@ from .exceptions import CategoryValidationException
 
 class ProductService:
 
-    @staticmethod
-    def get():
-        products = ProductRepository.get()
+    def __init__(self):
+        self.product_repository = ProductRepository()
+
+    def get(self):
+        products = self.product_repository.get()
         serializer = ProductSerializer(products, many=True)
         return serializer.data
 
-    @staticmethod
-    def get_by_id(product_id):
+    def get_by_id(self, product_id):
         try:
-            product = ProductRepository.get_product(product_id)
+            product = self.product_repository.get_product(product_id)
         except ProductDoesNotExist:
             raise ProductNotFoundException(product_id)
         except ProductValidationError:
@@ -32,26 +33,23 @@ class ProductService:
         serializer = ProductSerializer(product)
         return serializer.data
 
-    @staticmethod
-    def get_by_category(category_id):
-        products = ProductRepository.get_by_category(category_id)
+    def get_by_category(self, category_id):
+        products = self.product_repository.get_by_category(category_id)
         serializer = ProductSerializer(products, many=True)
         return serializer.data
 
-    @staticmethod
-    def create(data):
+    def create(self, data):
         serializer = ProductSerializer(data=data)
         if serializer.is_valid():
             product = serializer.validated_data
-            ProductRepository.create(product)
+            self.product_repository.create(product)
         else:
             raise ProductValidationException(errors=serializer.errors)
         return serializer.data
 
-    @staticmethod
-    def update(product_id, data):
+    def update(self, product_id, data):
         try:
-            product = ProductRepository.get_product(product_id)
+            product = self.product_repository.get_product(product_id)
         except ProductDoesNotExist:
             raise ProductNotFoundException(product_id)
         except ProductValidationError:
@@ -59,34 +57,35 @@ class ProductService:
         serializer = ProductSerializer(product, data, partial=True)
         if serializer.is_valid():
             product = serializer.validated_data
-            ProductRepository.update(product_id, product)
+            self.product_repository.update(product_id, product)
         else:
             raise ProductValidationException(product_id, serializer.errors)
         return serializer.data
 
-    @staticmethod
-    def delete(product_id):
+    def delete(self, product_id):
         try:
-            product = ProductRepository.get_product(product_id)
+            product = self.product_repository.get_product(product_id)
         except ProductDoesNotExist:
             raise ProductNotFoundException(product_id)
         except ProductValidationError:
             raise ProductValidationException(product_id)
-        ProductRepository.delete(product_id)
+        self.product_repository.delete(product_id)
 
 
 class ProductCategoryService:
 
-    @staticmethod
-    def get():
-        categories = ProductCategoryRepository.get()
+    def __init__(self):
+        self.product_repository = ProductRepository()
+        self.category_repository = ProductCategoryRepository()
+
+    def get(self):
+        categories = self.category_repository.get()
         serializer = ProductCategorySerializer(categories, many=True)
         return serializer.data
 
-    @staticmethod
-    def get_by_id(category_id):
+    def get_by_id(self, category_id):
         try:
-            category = ProductCategoryRepository.get_category(category_id)
+            category = self.category_repository.get_category(category_id)
         except CategoryDoesNotExist:
             raise CategoryNotFoundException(category_id)
         except CategoryValidationError:
@@ -94,20 +93,18 @@ class ProductCategoryService:
         serializer = ProductCategorySerializer(category)
         return serializer.data
 
-    @staticmethod
-    def create(data):
+    def create(self, data):
         serializer = ProductCategorySerializer(data=data)
         if serializer.is_valid():
             category = serializer.validated_data
-            ProductCategoryRepository.create(category)
+            self.category_repository.create(category)
         else:
             raise CategoryValidationException(errors=serializer.errors)
         return serializer.data
 
-    @staticmethod
-    def update(category_id, data):
+    def update(self, category_id, data):
         try:
-            category = ProductCategoryRepository.get_category(category_id)
+            category = self.category_repository.get_category(category_id)
         except CategoryDoesNotExist:
             raise CategoryNotFoundException(category_id)
         except CategoryValidationError:
@@ -115,25 +112,23 @@ class ProductCategoryService:
         serializer = ProductCategorySerializer(category, data=data, partial=True)
         if serializer.is_valid():
             category = serializer.validated_data
-            ProductCategoryRepository.update(category_id, category)
+            self.category_repository.update(category_id, category)
         else:
             raise CategoryValidationException(category_id, serializer.errors)
         return serializer.data
 
-    @staticmethod
-    def delete(category_id):
+    def delete(self, category_id):
         try:
-            category = ProductCategoryRepository.get_category(category_id)
+            category = self.category_repository.get_category(category_id)
         except CategoryDoesNotExist:
             raise CategoryNotFoundException(category_id)
         except CategoryValidationError:
             raise CategoryValidationException(category_id)
-        ProductCategoryRepository.delete(category_id)
+        self.category_repository.delete(category_id)
 
-    @staticmethod
-    def add_to_category(category_id, product_ids):
+    def add_to_category(self, category_id, product_ids):
         try:
-            category = ProductCategoryRepository.get_category(category_id)
+            category = self.category_repository.get_category(category_id)
         except CategoryDoesNotExist:
             raise CategoryNotFoundException(category_id)
         except CategoryValidationError:
@@ -141,21 +136,20 @@ class ProductCategoryService:
 
         for product_id in product_ids:
             try:
-                product = ProductRepository.get_product(product_id)
+                product = self.product_repository.get_product(product_id)
             except ProductDoesNotExist:
                 raise ProductNotFoundException(product_id)
             except ProductValidationError:
                 raise ProductValidationException(product_id)
 
-            ProductRepository.update(product.id, {"category": category})
+            self.product_repository.update(product.id, {"category": category})
 
-    @staticmethod
-    def remove_from_category(category_id, product_ids):
-        uncategorized_category = ProductCategoryRepository.get_by_title(
+    def remove_from_category(self, category_id, product_ids):
+        uncategorized_category = self.category_repository.get_by_title(
             title="Uncategorized"
         )
         try:
-            category = ProductCategoryRepository.get_category(category_id)
+            category = self.category_repository.get_category(category_id)
         except CategoryDoesNotExist:
             raise CategoryNotFoundException(category_id)
         except CategoryValidationError:
@@ -163,10 +157,12 @@ class ProductCategoryService:
 
         for product_id in product_ids:
             try:
-                product = ProductRepository.get_product(product_id)
+                product = self.product_repository.get_product(product_id)
             except ProductDoesNotExist:
                 raise ProductNotFoundException(product_id)
             except ProductValidationError:
                 raise ProductValidationException(product_id)
 
-            ProductRepository.update(product.id, {"category": uncategorized_category})
+            self.product_repository.update(
+                product.id, {"category": uncategorized_category}
+            )
