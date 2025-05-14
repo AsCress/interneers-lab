@@ -21,7 +21,7 @@ class Product(me.Document):
     )
     price = me.DecimalField(required=True, min_value=0)
     brand = me.StringField(required=True, max_length=255)
-    quantity = me.IntField(default=0, min_value=0)
+    quantity = me.IntField(required=True, default=0, min_value=0)
     created_at = me.DateTimeField(default=datetime.utcnow)
     updated_at = me.DateTimeField(default=datetime.utcnow)
 

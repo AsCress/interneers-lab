@@ -7,9 +7,9 @@ from product.views import ProductCategoryView
 from django_app.api.views import hello_name
 
 urlpatterns = [
-    path("products/", ProductView.as_view()),
+    path("products/", ProductView.as_view(), name="product-list"),
     path("products/<product_id>/", ProductView.as_view()),
-    path("categories/", ProductCategoryView.as_view()),
+    path("categories/", ProductCategoryView.as_view(), name="category-list"),
     path("categories/<category_id>/", ProductCategoryView.as_view()),
     path("categories/<category_id>/products/", ProductCategoryView.as_view()),
     path("admin/", admin.site.urls),
