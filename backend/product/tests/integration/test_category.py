@@ -136,19 +136,19 @@ class CategoryTests(APITestCase):
         data = ["67f90795d97427e5fa53f641"]
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 404)
-    
+
     def test_remove_from_category_valid(self):
         url = reverse("category-list") + str(self.category.id) + "/products/"
         data = [str(self.product.id)]
         response = self.client.delete(url, data, format="json")
         self.assertEqual(response.status_code, 201)
-    
+
     def test_remove_from_category_invalid(self):
         url = reverse("category-list") + str(self.category.id) + "/products/"
         data = ["67f90795d97427e5fa53f64"]
         response = self.client.delete(url, data, format="json")
         self.assertEqual(response.status_code, 400)
-    
+
     def test_remove_from_category_not_found(self):
         url = reverse("category-list") + "67fb3895bfebba6f3882856c" + "/products/"
         data = ["67f90795d97427e5fa53f641"]

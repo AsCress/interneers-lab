@@ -19,6 +19,8 @@ class ProductPagination(PageNumberPagination):
 
 class ProductView(APIView):
     pagination_class = ProductPagination
+    product_service = ProductService()
+    category_service = ProductCategoryService()
 
     def get_paginated_response(self, data):
         paginator = self.pagination_class()
@@ -26,15 +28,15 @@ class ProductView(APIView):
         return paginator.get_paginated_response(results)
 
     def get_by_id(self, product_id):
-        product = ProductService.get_by_id(product_id)
+        product = self.product_service.get_by_id(product_id)
         return Response(product, status=status.HTTP_200_OK)
 
     def list(self, request):
-        products = ProductService.get()
+        products = self.product_service.get()
         return self.get_paginated_response(products)
 
     def list_by_category(self, request, category_id):
-        products = ProductService.get_by_category(category_id)
+        products = self.product_service.get_by_category(category_id)
         return self.get_paginated_response(products)
 
     def get(self, request, product_id=None):
@@ -42,20 +44,20 @@ class ProductView(APIView):
             return self.get_by_id(product_id)
         category_id = request.GET.get("category_id")
         if category_id:
-            ProductCategoryService.get_by_id(category_id)
+            self.category_service.get_by_id(category_id)
             return self.list_by_category(request, category_id)
         return self.list(request)
 
     def post(self, request):
-        product = ProductService.create(request.data)
+        product = self.product_service.create(request.data)
         return Response(product, status=status.HTTP_201_CREATED)
 
     def put(self, request, product_id):
-        product = ProductService.update(product_id, request.data)
-        return Response(product, status=status.HTTP_201_CREATED)
+        product = self.product_service.update(product_id, request.data)
+        return Response(product, status=status.HTTP_200_OK)
 
     def delete(self, request, product_id):
-        ProductService.delete(product_id)
+        self.product_service.delete(product_id)
         return Response(
             ResponseSerializer(MessageResponse("Product deleted successfully")).data,
             status=status.HTTP_204_NO_CONTENT,
@@ -64,6 +66,8 @@ class ProductView(APIView):
 
 class ProductCategoryView(APIView):
     pagination_class = ProductPagination
+    product_service = ProductService()
+    category_service = ProductCategoryService()
 
     def get_paginated_response(self, data):
         paginator = self.pagination_class()
@@ -71,11 +75,11 @@ class ProductCategoryView(APIView):
         return paginator.get_paginated_response(results)
 
     def get_by_id(self, category_id):
-        category = ProductCategoryService.get_by_id(category_id)
+        category = self.category_service.get_by_id(category_id)
         return Response(category, status=status.HTTP_200_OK)
 
     def list(self, request):
-        categories = ProductCategoryService.get()
+        categories = self.category_service.get()
         return self.get_paginated_response(categories)
 
     def get(self, request, category_id=None):
@@ -86,17 +90,17 @@ class ProductCategoryView(APIView):
     def post(self, request, category_id=None):
         if request.path.endswith("/products/"):
             return self.add_to_category(request, category_id)
-        category = ProductCategoryService.create(request.data)
+        category = self.category_service.create(request.data)
         return Response(category, status=status.HTTP_201_CREATED)
 
     def put(self, request, category_id):
-        category = ProductCategoryService.update(category_id, request.data)
-        return Response(category, status=status.HTTP_201_CREATED)
+        category = self.category_service.update(category_id, request.data)
+        return Response(category, status=status.HTTP_200_OK)
 
     def delete(self, request, category_id):
         if request.path.endswith("/products/"):
             return self.remove_from_category(request, category_id)
-        ProductCategoryService.delete(category_id)
+        self.category_service.delete(category_id)
         return Response(
             ResponseSerializer(MessageResponse("Category deleted successfully")).data,
             status=status.HTTP_204_NO_CONTENT,
@@ -111,7 +115,7 @@ class ProductCategoryView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        ProductCategoryService.add_to_category(category_id, request.data)
+        self.category_service.add_to_category(category_id, request.data)
 
         return Response(
             ResponseSerializer(
@@ -129,7 +133,7 @@ class ProductCategoryView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        ProductCategoryService.remove_from_category(category_id, request.data)
+        self.category_service.remove_from_category(category_id, request.data)
 
         return Response(
             ResponseSerializer(
